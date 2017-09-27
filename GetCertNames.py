@@ -77,9 +77,6 @@ def main():
 	if not (ports and len(ports)):
 		ports = [443]
 
-	print addresses
-	return
-
 	ipportcombo = [ [str(ip), port] for ip, port in itertools.product(addresses, ports)  ]
 
 	# randomize the ports and IP addresses?
