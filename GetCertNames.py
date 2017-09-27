@@ -53,13 +53,19 @@ def main():
 	import argparse
 	import itertools
 	import random
+	import sys
 
 	parser = argparse.ArgumentParser(description='Get cert names from remote systems.')
-	parser.add_argument('-t', '--target', metavar='TARGET', type=str, nargs='+', help='target name, address, or CIDR range')
+	parser.add_argument('-t', '--target', metavar='TARGET', action='append', type=str, help='target name, address, or CIDR range')
 	parser.add_argument('-p', '--port', metavar='PORT', action='append', type=int, help='ports to check (default: 443)')
 	parser.add_argument('-r', '--random', action='store_false', help='disable randomization of ports and hosts')
 	parser.add_argument('-v', '--verbose', action='store_true', help='verbose')
 	args = parser.parse_args()
+
+	if not (args.target and len(args.target)):
+		print 'Needs at least 1 target!'
+		parser.print_help()
+		sys.exit(1)
 
 
 	# get the IPs if rages
@@ -70,6 +76,9 @@ def main():
 	ports = args.port
 	if not (ports and len(ports)):
 		ports = [443]
+
+	print addresses
+	return
 
 	ipportcombo = [ [str(ip), port] for ip, port in itertools.product(addresses, ports)  ]
 
