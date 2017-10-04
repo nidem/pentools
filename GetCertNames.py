@@ -47,7 +47,7 @@ def getCertNames(ip, port, verbose=False):
 			names.append(san)
 			#print ip, san
 
-	return sans
+	return names
 
 def main():
 	import argparse
