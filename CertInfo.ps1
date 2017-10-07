@@ -15,29 +15,40 @@ function Get-SSLNames {
 [CmdletBinding()]
 	param(
 		[Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-		[string]$Target,
+		[string[]]$Targets,
 
 		[Parameter(Position = 1)]
 		[ValidateRange(1,65535)]
-		[int]$Port = 443,
+		[int[]]$Ports = 443,
 
 		[Parameter(Position = 2)]
 		[int]$Timeout = 3000
 	)
 
-	# Is it an IP Address?
-	try {
-		$IP = ([ipaddress]$Target) #.IPAddressToString
-	} catch {
-		# not an IP
-		$IP = [System.Net.Dns]::GetHostAddresses($Target)#.IPAddressToString
+	# convert targets to IP Addresses
+	$IPs = @()
+	foreach ($Target in $Targets) {
+		# Is it an IP Address?
+		try {
+			$IP = [ipaddress]$Target
+			$IPS += $IP
+		} catch {
+			# not an IP
+			[System.Net.Dns]::GetHostAddresses($Target) | % {
+				$IPS += $_
+			}
+		}
 	}
 
-	Get-SSLNamesObject -Target $Target -Port $Port -Timeout $Timeout | Select-Object -ExpandProperty AllNames | % {
-		New-Object -TypeName PSObject -Property @{
-			IPAddress = $IP;
-			Port = $Port;
-			Name = $_
+	foreach ($IP in $IPs) {
+		foreach ($Port in $Ports) {
+			Get-SSLNamesObject -Target $IP -Port $Port -Timeout $Timeout -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AllNames | % {
+				New-Object -TypeName PSObject -Property @{
+					IPAddress = $IP;
+					Port = $Port;
+					Name = $_
+				}
+			}
 		}
 	}
 }
@@ -69,31 +80,31 @@ function Get-SSLNamesObject {
 	# attempt to get the cert
 	if ($WebRequest.ServicePoint.Certificate -ne $null) {
 		$Cert = [Security.Cryptography.X509Certificates.X509Certificate2]$WebRequest.ServicePoint.Certificate.Handle
-        try {$SAN = ($Cert.Extensions | Where-Object {$_.Oid.Value -eq "2.5.29.17"}).Format(0) -split ", "}
-        catch {$SAN = $null}
+		try {$SAN = ($Cert.Extensions | Where-Object {$_.Oid.Value -eq "2.5.29.17"}).Format(0) -split ", "}
+		catch {$SAN = $null}
 
-        # make the CN pretty
-        $Subject = $WebRequest.ServicePoint.Certificate.Subject
-        # set the $Matches object
-        $Subject -match'(?<=CN=)[^,]+' | Out-Null
-        $CN = $Matches[0]
+		# make the CN pretty
+		$Subject = $WebRequest.ServicePoint.Certificate.Subject
+		# set the $Matches object
+		$Subject -match'(?<=CN=)[^,]+' | Out-Null
+		$CN = $Matches[0]
 
-        $AllNames = @($CN)
+		$AllNames = @($CN)
 
-        # fix the SAN
-        if ($SAN) {
-        	$SANPretty = $SAN | % { $_ -replace "DNS Name=", "" }
-        	$AllNames += $SANPretty
-        	$AllNames = $AllNames | select -uniq
-        }
+		# fix the SAN
+		if ($SAN) {
+			$SANPretty = $SAN | % { $_ -replace "DNS Name=", "" }
+			$AllNames += $SANPretty
+			$AllNames = $AllNames | select -uniq
+		}
 
-        New-Object -TypeName PSObject -Property @{
-        	CommonName = $CN;
-        	SubjectAlternativeNames = $SANPretty;
-        	AllNames = $AllNames;
-        }
+		New-Object -TypeName PSObject -Property @{
+			CommonName = $CN;
+			SubjectAlternativeNames = $SANPretty;
+			AllNames = $AllNames;
+		}
 
-        [Net.ServicePointManager]::ServerCertificateValidationCallback = $null
+		[Net.ServicePointManager]::ServerCertificateValidationCallback = $null
 
 	} else {
 		 Write-Error $Error[0]
