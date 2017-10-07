@@ -1,10 +1,14 @@
 function Get-SSLNames {
 <#
-	.SYNOPSIS   
+	.SYNOPSIS
+		Get names from web server's certificate
+	.DESCRIPTION
 		Access the targeted SSL/TLS server and extract names from the certificate
-	.EXAMPLE  
+	.NOTES
+		Author: Tim Medin, Red Siege, tim@redsiege.com
+	.EXAMPLE
 		Get-SSLNames 192.168.8.2
-	.EXAMPLE  
+	.EXAMPLE
 		"192.168.8.2" | Get-SSLNames
 #>
 
