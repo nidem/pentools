@@ -40,17 +40,19 @@ function Get-SSLNames {
 		}
 	}
 
-	foreach ($IP in $IPs) {
+	$results = foreach ($IP in $IPs) {
 		foreach ($Port in $Ports) {
 			Get-SSLNamesObject -Target $IP -Port $Port -Timeout $Timeout -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AllNames | % {
-				New-Object -TypeName PSObject -Property @{
+				$ht = [ordered]@{
+					Name = $_
 					IPAddress = $IP;
 					Port = $Port;
-					Name = $_
 				}
+				New-Object -TypeName PSObject -Property $ht
 			}
 		}
 	}
+	$results
 }
 
 function Get-SSLNamesObject {
