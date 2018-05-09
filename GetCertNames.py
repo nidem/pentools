@@ -27,7 +27,7 @@ def getCertNames(ip, port, verbose=False):
 		certstring = ssl.get_server_certificate((ip, port))
 	except (error, timeout) as err:
 		if verbose:
-			print "No connection: {0}".format(err)
+			print("No connection: {0}".format(err))
 		return None
 	der_cert = ssl.PEM_cert_to_DER_cert(certstring)
 	cert = x509.load_der_x509_certificate(der_cert, default_backend())
@@ -63,7 +63,7 @@ def main():
 	args = parser.parse_args()
 
 	if not (args.target and len(args.target)):
-		print 'Needs at least 1 target!'
+		print('Needs at least 1 target!')
 		parser.print_help()
 		sys.exit(1)
 
@@ -85,11 +85,11 @@ def main():
 
 	for x in ipportcombo:
 		if args.verbose:
-			print 'Checking: %s:%i' % (x[0], x[1])
+			print('Checking: %s:%i' % (x[0], x[1]))
 		names = getCertNames(x[0], x[1], args.verbose)
 		if names and len(names):
 			for name in names:
-				print x[0], x[1], name
+				print(x[0], x[1], name)
 
 if __name__ == '__main__':
 	main()
