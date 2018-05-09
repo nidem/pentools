@@ -10,7 +10,7 @@ __author__ = "Tim Medin"
 __copyright__ = "Copyright 2017, Red Siege"
 __credits__ = ["Tim Medin"]
 __license__ = "GPL"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __maintainer__ = "Tim Medin"
 __email__ = "tim@redsiege.com"
 __status__ = "Production"
@@ -71,7 +71,7 @@ def main():
 	# get the IPs if rages
 	addresses = []
 	for t in args.target:
-		addresses += list(IPNetwork(t))
+            addresses += list(IPNetwork(t))
 
 	ports = args.port
 	if not (ports and len(ports)):
